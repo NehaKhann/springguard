@@ -105,7 +105,7 @@ export default function Landing({
             </ul>
           </section>
 
-          <section className="landing-auth">
+          <section className="landing-auth" id="landing-auth">
             <div className="landing-auth-head">Start your free scan</div>
             <AuthPanel onAuth={onAuth} />
             <button className="guestlink" onClick={onGuest}>
@@ -170,7 +170,12 @@ export default function Landing({
         <h2 className="section-title">Ready to secure your Spring Boot app?</h2>
         <p className="section-sub">No credit card. No setup. Just paste code and get your security grade.</p>
         <div className="landing-cta-auth">
-          <AuthPanel onAuth={onAuth} />
+          <button
+            className="authsubmit landing-cta-btn"
+            onClick={() => document.getElementById('landing-auth')?.scrollIntoView({ behavior: 'smooth', block: 'center' })}
+          >
+            Get started free &uarr;
+          </button>
           <button className="guestlink" onClick={onGuest}>
             Continue without signing in &rarr;
           </button>
