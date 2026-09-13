@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { scanCode, scanRepo, saveScan, listScans, deleteScan, fixCode, fixRepoFile } from './api'
-import type { ScanReport, Severity, AuthResponse, ScanRecordResponse } from './types'
+import type { Finding, ScanReport, Severity, AuthResponse, ScanRecordResponse } from './types'
 import HistoryPanel from './HistoryPanel'
 import Landing from './Landing'
 import DiffView from './DiffView'
@@ -65,6 +65,31 @@ function SkeletonLoader({ mode }: { mode: Mode }) {
           </div>
         ))}
       </div>
+    </div>
+  )
+}
+
+/** Severity chip row shown under a fix panel ("Resolving: X, Y, Z"). */
+function ResolvingChips({ findings }: { findings: Finding[] }) {
+  return (
+    <div className="fix-resolving">
+      <span className="fix-resolving-label">Resolving</span>
+      {findings.map((f, i) => (
+        <span key={i} className={`fix-issue is-${String(f.severity).toLowerCase()}`}>{f.title}</span>
+      ))}
+    </div>
+  )
+}
+
+/** Header used by both the code-mode and repo-mode "AI auto-fix" panels. */
+function FixPanelHeader({ subtitle, action }: { subtitle: string; action: React.ReactNode }) {
+  return (
+    <div className="fixpanel-head">
+      <div>
+        <div className="cardlabel ai">AI auto-fix</div>
+        <div className="fixpanel-sub">{subtitle}</div>
+      </div>
+      {action}
     </div>
   )
 }
@@ -234,17 +259,15 @@ export default function App() {
       .filter(([path]) => accepted[path])
       .map(([path, v]) => ({ path, content: v.fixedCode }))
     if (files.length === 0) return
-    const blob = makeZip(files)
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = 'springguard-fixes.zip'
-    a.click()
-    URL.revokeObjectURL(url)
+    triggerDownload(makeZip(files), 'springguard-fixes.zip')
+  }
+
+  function reportTarget(r: ScanReport): string {
+    return reportMode === 'repo' ? (r.target || 'repository') : 'Pasted code'
   }
 
   function buildReportMarkdown(r: ScanReport): string {
-    const target = reportMode === 'repo' ? (r.target || 'repository') : 'Pasted code'
+    const target = reportTarget(r)
     const date = new Date().toLocaleString()
     const lines: string[] = []
     lines.push('# SpringGuard Security Report')
@@ -281,7 +304,7 @@ export default function App() {
   }
 
   function buildReportText(r: ScanReport): string {
-    const target = reportMode === 'repo' ? (r.target || 'repository') : 'Pasted code'
+    const target = reportTarget(r)
     const date = new Date().toLocaleString()
     const nl = '\r\n'
     const out: string[] = []
@@ -324,8 +347,8 @@ export default function App() {
     return `springguard-${slug}-${stamp}`
   }
 
-  function triggerDownload(content: string, filename: string, mime: string) {
-    const blob = new Blob([content], { type: mime })
+  function triggerDownload(content: string | Blob, filename: string, mime?: string) {
+    const blob = content instanceof Blob ? content : new Blob([content], { type: mime })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
@@ -501,21 +524,15 @@ export default function App() {
 
               {reportMode === 'code' && report.findings.length > 0 && (
                 <div className="fixpanel">
-                  <div className="fixpanel-head">
-                    <div>
-                      <div className="cardlabel ai">AI auto-fix</div>
-                      <div className="fixpanel-sub">Let AI rewrite this file with the issues fixed, then review the diff.</div>
-                    </div>
-                    <button className="scan-btn fixbtn" onClick={runFix} disabled={fixing}>
-                      {fixing ? 'Fixing…' : 'Fix with AI'}
-                    </button>
-                  </div>
-                  <div className="fix-resolving">
-                    <span className="fix-resolving-label">Resolving</span>
-                    {report.findings.map((f, i) => (
-                      <span key={i} className={`fix-issue is-${String(f.severity).toLowerCase()}`}>{f.title}</span>
-                    ))}
-                  </div>
+                  <FixPanelHeader
+                    subtitle="Let AI rewrite this file with the issues fixed, then review the diff."
+                    action={
+                      <button className="scan-btn fixbtn" onClick={runFix} disabled={fixing}>
+                        {fixing ? 'Fixing…' : 'Fix with AI'}
+                      </button>
+                    }
+                  />
+                  <ResolvingChips findings={report.findings} />
                   {fixMsg && <div className="notice">{fixMsg}</div>}
                   {fixedCode && (
                     <>
@@ -531,23 +548,22 @@ export default function App() {
 
               {reportMode === 'repo' && repoFiles.length > 0 && (
                 <div className="fixpanel">
-                  <div className="fixpanel-head">
-                    <div>
-                      <div className="cardlabel ai">AI auto-fix</div>
-                      <div className="fixpanel-sub">Generate AI fixes for the flagged files, review each diff, then accept the ones you want and download them.</div>
-                    </div>
-                    {Object.keys(repoFixes).length === 0 ? (
-                      <button className="scan-btn fixbtn" onClick={() => fixAllRepoFiles(repoFiles)} disabled={fixingAll}>
-                        {fixingAll ? 'Fixing…' : 'Fix with AI'}
-                      </button>
-                    ) : (
-                      acceptedCount > 0 && (
-                        <button className="scan-btn fixbtn" onClick={downloadAccepted}>
-                          Download accepted ({acceptedCount}) as ZIP
+                  <FixPanelHeader
+                    subtitle="Generate AI fixes for the flagged files, review each diff, then accept the ones you want and download them."
+                    action={
+                      Object.keys(repoFixes).length === 0 ? (
+                        <button className="scan-btn fixbtn" onClick={() => fixAllRepoFiles(repoFiles)} disabled={fixingAll}>
+                          {fixingAll ? 'Fixing…' : 'Fix with AI'}
                         </button>
+                      ) : (
+                        acceptedCount > 0 && (
+                          <button className="scan-btn fixbtn" onClick={downloadAccepted}>
+                            Download accepted ({acceptedCount}) as ZIP
+                          </button>
+                        )
                       )
-                    )}
-                  </div>
+                    }
+                  />
                   {repoFixMsg && <div className="notice">{repoFixMsg}</div>}
                   <div className="fixfiles">
                     {repoFiles.map((path) => (
@@ -564,12 +580,7 @@ export default function App() {
                             <span className="fixfile-pending">Queued…</span>
                           ) : null}
                         </div>
-                        <div className="fix-resolving">
-                          <span className="fix-resolving-label">Resolving</span>
-                          {report.findings.filter((f) => f.file === path).map((f, i) => (
-                            <span key={i} className={`fix-issue is-${String(f.severity).toLowerCase()}`}>{f.title}</span>
-                          ))}
-                        </div>
+                        <ResolvingChips findings={report.findings.filter((f) => f.file === path)} />
                         {repoFixes[path] && (
                           <DiffView original={repoFixes[path].original} fixed={repoFixes[path].fixedCode} />
                         )}
