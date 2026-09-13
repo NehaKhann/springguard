@@ -1,5 +1,9 @@
 # SpringGuard
 
+[![Live App](https://img.shields.io/badge/live-frontend-0aab55)](https://springguard-frontend.vercel.app)
+[![Live API](https://img.shields.io/badge/live-backend-0aab55)](https://springguard-backend.onrender.com)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
 A security auditor for Java / Spring Boot code. Paste a file or point it at a GitHub
 repository and get an A–F security grade, plain-language findings from a 21-rule
 deterministic engine, an optional AI review pass for context-sensitive issues, and
