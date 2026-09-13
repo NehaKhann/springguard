@@ -269,8 +269,11 @@ button { font-family: inherit; }
 .authsubmit {
   border: none; border-radius: 10px; background: linear-gradient(180deg, #6E9BF2, var(--accent));
   color: #fff; font-weight: 600; font-size: 14px; padding: 12px; cursor: pointer; margin-top: 2px;
+  transition: filter .15s, transform .08s;
 }
 .authsubmit:disabled { opacity: 0.5; cursor: not-allowed; }
+.authsubmit:hover:not(:disabled) { filter: brightness(1.06); }
+.authsubmit:active:not(:disabled) { transform: translateY(1px); }
 .autherror { color: var(--amber); font-size: 13px; }
 
 /* ---------------- Landing marketing sections ---------------- */
@@ -573,13 +576,6 @@ textarea:focus-visible {
 
 /* Topbar polish ----------------------------------------- */
 .topbar { border-bottom-color: var(--line-strong); }
-
-/* Auth submit polish ------------------------------------ */
-.authsubmit {
-  transition: filter .15s, transform .08s;
-}
-.authsubmit:hover:not(:disabled) { filter: brightness(1.06); }
-.authsubmit:active:not(:disabled) { transform: translateY(1px); }
 
 @media (prefers-reduced-motion: reduce) {
   .skel { animation: none; background: var(--surface-2); }
