@@ -438,6 +438,153 @@ button { font-family: inherit; }
   .topbar { backdrop-filter: none; }
 }
 
+/* ============================================================
+   UI POLISH — enhanced styles
+   ============================================================ */
+
+/* Skeleton loading ---------------------------------------- */
+@keyframes shimmer {
+  0%   { background-position: -600px 0; }
+  100% { background-position:  600px 0; }
+}
+.skel {
+  border-radius: 8px;
+  background: linear-gradient(
+    90deg,
+    var(--surface) 0px,
+    rgba(255,255,255,0.048) 120px,
+    var(--surface) 240px
+  );
+  background-size: 600px 100%;
+  animation: shimmer 1.6s ease-in-out infinite;
+}
+.skeleton-report { display: flex; flex-direction: column; gap: 16px; }
+.skeleton-scorecards { display: flex; gap: 14px; flex-wrap: wrap; }
+.skel-gradecard {
+  flex: 2; min-width: 280px;
+  display: flex; gap: 22px; align-items: center;
+  background: var(--surface); border: 1px solid var(--line);
+  border-radius: var(--radius); padding: 22px;
+}
+.skel-grade-circle { width: 88px; height: 88px; border-radius: 50%; flex-shrink: 0; }
+.skel-aicard {
+  flex: 1; min-width: 230px;
+  display: flex; flex-direction: column; gap: 12px;
+  background: var(--surface); border: 1px solid var(--line);
+  border-radius: var(--radius); padding: 22px;
+}
+.skel-findings {
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px;
+}
+@media (max-width: 760px) { .skel-findings { grid-template-columns: 1fr; } }
+.skel-finding {
+  background: var(--surface); border: 1px solid var(--line);
+  border-radius: 12px; padding: 16px 18px;
+  display: flex; flex-direction: column; gap: 10px;
+}
+.skel-line { height: 14px; }
+.skel-line.w-30 { width: 30%; }
+.skel-line.w-50 { width: 50%; }
+.skel-line.w-70 { width: 70%; }
+.skel-line.w-full { width: 100%; }
+
+/* Grade ring --------------------------------------------- */
+.grade-ring {
+  width: 104px; height: 104px; border-radius: 50%; flex-shrink: 0;
+  background:
+    radial-gradient(circle at center, var(--surface) 43px, transparent 44px),
+    conic-gradient(
+      var(--grade-color, var(--accent)) calc(var(--grade-pct, 0.75) * 360deg),
+      rgba(255,255,255,0.07) 0deg
+    );
+  display: grid; place-items: center;
+  box-shadow: 0 0 0 1px var(--line), 0 8px 24px -8px rgba(0,0,0,0.5);
+}
+.grade-ring .grade { width: auto; }
+
+/* Finding card hover ------------------------------------- */
+.finding {
+  cursor: default;
+  transition: box-shadow .2s ease, border-color .2s ease, transform .15s ease;
+}
+.finding:hover {
+  box-shadow: var(--shadow-pop);
+  transform: translateY(-2px);
+}
+
+/* Inline delete confirm ---------------------------------- */
+.histdelete-wrap { display: flex; gap: 6px; align-items: stretch; flex-shrink: 0; }
+.histconfirm {
+  border: 1px solid var(--red); border-radius: 12px;
+  background: rgba(224,88,74,0.12); color: var(--red); cursor: pointer;
+  font-size: 12.5px; font-weight: 600; padding: 0 14px; min-width: 82px;
+  transition: background .15s;
+}
+.histconfirm:hover { background: rgba(224,88,74,0.25); }
+.histcancel {
+  border: 1px solid var(--line); border-radius: 12px;
+  background: var(--surface); color: var(--mute); cursor: pointer;
+  font-size: 12px; padding: 0 12px;
+  transition: border-color .15s, color .15s;
+}
+.histcancel:hover { border-color: var(--line-strong); color: var(--ink-dim); }
+.histdelete-label {
+  font-size: 12px; color: var(--mute); padding: 0 8px;
+  display: flex; align-items: center; white-space: nowrap;
+}
+
+/* Focus rings -------------------------------------------- */
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Custom scrollbar for diff ------------------------------ */
+.diff-body::-webkit-scrollbar { width: 6px; height: 6px; }
+.diff-body::-webkit-scrollbar-track { background: transparent; }
+.diff-body::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.1); border-radius: 3px;
+}
+.diff-body::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.18); }
+
+/* Landing step card hover -------------------------------- */
+.step {
+  transition: border-color .2s ease, box-shadow .2s ease, transform .15s ease;
+}
+.step:hover {
+  border-color: rgba(124,91,239,0.45);
+  box-shadow: 0 0 0 1px rgba(124,91,239,0.12), var(--shadow-pop);
+  transform: translateY(-2px);
+}
+
+/* History row hover polish ------------------------------ */
+.histmain { transition: border-color .15s ease, background .15s ease; }
+.histmain:hover { background: var(--surface-2); }
+
+/* FAQ item polish --------------------------------------- */
+.faq-item { transition: border-color .2s; }
+.faq-a {
+  transition: none; /* content revealed via conditional render — no jank */
+}
+
+/* Topbar polish ----------------------------------------- */
+.topbar { border-bottom-color: var(--line-strong); }
+
+/* Auth submit polish ------------------------------------ */
+.authsubmit {
+  transition: filter .15s, transform .08s;
+}
+.authsubmit:hover:not(:disabled) { filter: brightness(1.06); }
+.authsubmit:active:not(:disabled) { transform: translateY(1px); }
+
+@media (prefers-reduced-motion: reduce) {
+  .skel { animation: none; background: var(--surface-2); }
+  .finding, .step { transition: none; transform: none; }
+  .histmain { transition: none; }
+}
+
 /* ---------------- AI auto-fix ---------------- */
 .fixpanel {
   margin-top: 4px; background: linear-gradient(180deg, rgba(124,91,239,0.08), var(--surface));

@@ -14,9 +14,15 @@ export default function HistoryPanel({
   onDelete: (id: number) => void
 }) {
   const [open, setOpen] = useState<number | null>(null)
+  const [pendingDelete, setPendingDelete] = useState<number | null>(null)
 
   if (items.length === 0) {
     return <div className="empty"><p>No saved scans yet. Run a scan and save it to build your history.</p></div>
+  }
+
+  function confirmDelete(id: number) {
+    onDelete(id)
+    setPendingDelete(null)
   }
 
   return (
@@ -24,10 +30,11 @@ export default function HistoryPanel({
       {items.map((it) => {
         const isOpen = open === it.id
         const count = it.findings?.length ?? 0
+        const isPending = pendingDelete === it.id
         return (
           <div key={it.id} className="histcard">
             <div className="histrow">
-              <button className="histmain" onClick={() => setOpen(isOpen ? null : it.id)}>
+              <button className="histmain" onClick={() => { setPendingDelete(null); setOpen(isOpen ? null : it.id) }}>
                 <span className="histgrade" style={{ color: GRADE_COLOR[it.grade] || 'var(--amber)' }}>{it.grade}</span>
                 <span className="histbody">
                   <span className="histsummary">{it.summary || `Score ${it.score}/100`}</span>
@@ -36,9 +43,17 @@ export default function HistoryPanel({
                 <span className="histscore">{it.score}</span>
                 <span className="histchevron">{count > 0 ? (isOpen ? '\u2212' : '+') : ''}</span>
               </button>
-              <button className="histdelete" title="Delete this scan" onClick={() => onDelete(it.id)}>
-                {'\u2715'}
-              </button>
+              {isPending ? (
+                <div className="histdelete-wrap">
+                  <span className="histdelete-label">Delete?</span>
+                  <button className="histconfirm" onClick={() => confirmDelete(it.id)}>Yes, delete</button>
+                  <button className="histcancel" onClick={() => setPendingDelete(null)}>Cancel</button>
+                </div>
+              ) : (
+                <button className="histdelete" title="Delete this scan" onClick={() => setPendingDelete(it.id)}>
+                  {'\u2715'}
+                </button>
+              )}
             </div>
 
             {isOpen && count > 0 && (

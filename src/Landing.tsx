@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import AuthPanel from './AuthPanel'
+import ShieldIcon from './ShieldIcon'
 import type { AuthResponse } from './types'
 
 const COMPARISON = [
@@ -85,7 +86,7 @@ export default function Landing({
         <div className="landing-inner">
           <section className="landing-hero">
             <div className="brand">
-              <span className="shield" aria-hidden>&#9960;</span>
+              <span className="shield"><ShieldIcon size={18} /></span>
               <span className="brand-name">SpringGuard</span>
             </div>
             <h1 className="landing-title">
@@ -179,7 +180,7 @@ export default function Landing({
       <footer className="landing-foot">
         <div className="landing-foot-inner">
           <div className="landing-foot-brand">
-            <span className="shield" aria-hidden>&#9960;</span>
+            <span className="shield"><ShieldIcon size={18} /></span>
             <span className="brand-name">SpringGuard</span>
           </div>
           <span className="landing-foot-copy">Security scanner for Spring Boot &middot; Java &middot; OSS</span>

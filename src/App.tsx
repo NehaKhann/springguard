@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { scanCode, scanRepo, saveScan, listScans, deleteScan, fixCode, fixRepoFile } from './api'
 import type { ScanReport, Severity, AuthResponse, ScanRecordResponse } from './types'
 import HistoryPanel from './HistoryPanel'
 import Landing from './Landing'
 import DiffView from './DiffView'
+import ShieldIcon from './ShieldIcon'
 import { makeZip } from './zip'
 
 const SAMPLE = `// SecurityConfig.java + application.properties (sample)
@@ -33,6 +34,40 @@ const GRADE_COLOR: Record<string, string> = {
 const SEV_LABEL: Record<Severity, string> = { HIGH: 'High', MEDIUM: 'Medium', LOW: 'Low' }
 
 type Mode = 'code' | 'repo'
+
+function SkeletonLoader({ mode }: { mode: Mode }) {
+  return (
+    <div className="skeleton-report" aria-busy="true" aria-label="Loading scan results">
+      <div className="skeleton-scorecards">
+        <div className="skel-gradecard">
+          <div className="skel skel-grade-circle" />
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <div className="skel skel-line w-30" />
+            <div className="skel skel-line w-50" />
+            <div className="skel skel-line w-70" />
+            <div className="skel skel-line w-30" style={{ marginTop: 4 }} />
+          </div>
+        </div>
+        {mode === 'code' && (
+          <div className="skel-aicard">
+            <div className="skel skel-line w-30" />
+            <div className="skel skel-line w-50" />
+            <div className="skel skel-line w-70" />
+          </div>
+        )}
+      </div>
+      <div className="skel-findings">
+        {[1, 2, 3, 4].map((n) => (
+          <div key={n} className="skel-finding">
+            <div className="skel skel-line w-30" />
+            <div className="skel skel-line w-full" />
+            <div className="skel skel-line w-70" />
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
 
 export default function App() {
   const [mode, setMode] = useState<Mode>('code')
@@ -97,7 +132,6 @@ export default function App() {
 
   async function handleDelete(id: number) {
     if (!token) return
-    if (!window.confirm('Delete this scan from your history?')) return
     try {
       await deleteScan(token, id)
       refreshHistory()
@@ -327,7 +361,7 @@ export default function App() {
     <div className="app">
       <header className="topbar">
         <div className="brand">
-          <span className="shield" aria-hidden>&#9960;</span>
+          <span className="shield"><ShieldIcon size={20} /></span>
           <span className="brand-name">SpringGuard</span>
         </div>
         <span className="brand-tag">A security grade for your Spring Boot app</span>
@@ -392,7 +426,7 @@ export default function App() {
           {!report && !error && !loading && (
             <div className="empty"><p>Run a scan to see the security grade and findings.</p></div>
           )}
-          {loading && <div className="empty"><p>{mode === 'repo' ? 'Scanning the repository\u2026 this can take a moment.' : 'Analysing your code\u2026'}</p></div>}
+          {loading && <SkeletonLoader mode={mode} />}
           {error && <div className="error">{error}</div>}
           {report && !analyzed && <div className="notice">{report.message}</div>}
 
@@ -400,8 +434,16 @@ export default function App() {
             <div className="report">
               <div className="scorecards">
                 <div className="gradecard">
-                  <div className="grade" style={{ color: GRADE_COLOR[report.grade] || 'var(--amber)' }}>
-                    {report.grade}
+                  <div
+                    className="grade-ring"
+                    style={{
+                      '--grade-color': GRADE_COLOR[report.grade] || 'var(--amber)',
+                      '--grade-pct': (report.score / 100).toFixed(3),
+                    } as React.CSSProperties}
+                  >
+                    <div className="grade" style={{ color: GRADE_COLOR[report.grade] || 'var(--amber)' }}>
+                      {report.grade}
+                    </div>
                   </div>
                   <div className="gradeinfo">
                     <div className="cardlabel">{reportMode === 'repo' ? 'Repo grade' : 'Rule grade'}</div>
@@ -548,7 +590,7 @@ export default function App() {
         </section>
       )}
 
-      <footer className="foot">SpringGuard &middot; Java &middot; Spring Boot</footer>
+      <footer className="foot">SpringGuard · Java · Spring Boot</footer>
     </div>
   )
 }
