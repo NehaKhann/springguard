@@ -4,3 +4,5 @@ dist/
 .vscode/
 .idea/
 *.log
+.vercel
+.env*
