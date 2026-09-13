@@ -16,6 +16,19 @@ AI-generated fixes with a before/after diff.
 > quiet period can take ~30–60s to wake up. Running locally is faster and is the
 > recommended way to develop.
 
+<p align="center">
+  <img src="docs/screenshots/landing.png" alt="SpringGuard landing page" width="800"><br>
+  <sub>Landing page</sub>
+</p>
+<p align="center">
+  <img src="docs/screenshots/scan-report.png" alt="Scan report with rule-based and AI findings" width="800"><br>
+  <sub>Scan report — rule engine grade + AI review findings side by side</sub>
+</p>
+<p align="center">
+  <img src="docs/screenshots/ai-autofix.png" alt="AI auto-fix diff view" width="800"><br>
+  <sub>AI auto-fix — before/after diff, ready to apply or copy</sub>
+</p>
+
 This is a monorepo combining what were previously two separate repositories
 (`springguard-backend` and `springguard-frontend`); full commit history from both was
 preserved during the merge.
