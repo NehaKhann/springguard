@@ -21,11 +21,15 @@ public class FixController {
         if (!ai.isEnabled()) {
             return new FixResponse("AI_OFF", "AI auto-fix isn't available right now.", null);
         }
-        String fixed = ai.fix(request.code());
-        if (fixed == null || fixed.isBlank()) {
-            return new FixResponse("ERROR", "Couldn't generate a fix. Please try again.", null);
+        try {
+            String fixed = ai.fix(request.code());
+            if (fixed == null || fixed.isBlank()) {
+                return new FixResponse("ERROR", "Couldn't generate a fix. Please try again.", null);
+            }
+            return new FixResponse("OK", null, fixed);
+        } catch (AiReviewService.FixTooLargeException e) {
+            return new FixResponse("ERROR", e.getMessage() + " Try fixing a smaller section.", null);
         }
-        return new FixResponse("OK", null, fixed);
     }
 
     @PostMapping("/fix-repo-file")
@@ -65,7 +69,12 @@ public class FixController {
             if (original == null || original.isBlank()) {
                 return new RepoFixResponse("ERROR", "Could not fetch that file from GitHub.", request.path(), null, null);
             }
-            String fixed = ai.fix(original);
+            String fixed;
+            try {
+                fixed = ai.fix(original);
+            } catch (AiReviewService.FixTooLargeException e) {
+                return new RepoFixResponse("ERROR", e.getMessage() + " Try a smaller file.", request.path(), null, null);
+            }
             if (fixed == null || fixed.isBlank()) {
                 return new RepoFixResponse("ERROR", "Couldn't generate a fix. Please try again.", request.path(), null, null);
             }

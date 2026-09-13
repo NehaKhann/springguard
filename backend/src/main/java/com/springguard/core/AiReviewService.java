@@ -45,7 +45,15 @@ public class AiReviewService {
         Return ONLY the corrected code. No explanations, no comments about changes, no markdown fences.
         """;
 
-    private static final int MAX_CHARS = 8000;
+    /** Cap on how much code is sent to the AI review pass; a truncated review just yields fewer findings. */
+    private static final int MAX_REVIEW_CHARS = 8000;
+
+    /**
+     * Cap on how much code the AI fix pass will rewrite. Unlike review, fix output replaces the
+     * whole file in the UI, so silently truncating here would silently corrupt anything past the
+     * cutoff. Files over this size are rejected with a clear error instead (see {@link #fix}).
+     */
+    private static final int MAX_FIX_CHARS = 24000;
 
     private final String apiKey;
     private final String model;
@@ -65,7 +73,7 @@ public class AiReviewService {
 
         SimpleClientHttpRequestFactory rf = new SimpleClientHttpRequestFactory();
         rf.setConnectTimeout(8000);
-        rf.setReadTimeout(20000);
+        rf.setReadTimeout(30000);
         this.http = RestClient.builder().requestFactory(rf).build();
     }
 
@@ -77,7 +85,7 @@ public class AiReviewService {
         if (!isEnabled() || code == null || code.isBlank()) {
             return List.of();
         }
-        String snippet = code.length() > MAX_CHARS ? code.substring(0, MAX_CHARS) : code;
+        String snippet = code.length() > MAX_REVIEW_CHARS ? code.substring(0, MAX_REVIEW_CHARS) : code;
 
         try {
             Map<String, Object> body = Map.of(
@@ -127,19 +135,25 @@ public class AiReviewService {
         return out;
     }
 
-    /** Ask the model to rewrite the code with security issues fixed. Returns null if unavailable. */
+    /**
+     * Ask the model to rewrite the code with security issues fixed. Returns null if unavailable
+     * or the call fails. Throws {@link FixTooLargeException} rather than truncating, since a
+     * truncated "fix" would silently drop the tail of the file when applied.
+     */
     public String fix(String code) {
         if (!isEnabled() || code == null || code.isBlank()) {
             return null;
         }
-        String snippet = code.length() > MAX_CHARS ? code.substring(0, MAX_CHARS) : code;
+        if (code.length() > MAX_FIX_CHARS) {
+            throw new FixTooLargeException(code.length(), MAX_FIX_CHARS);
+        }
         try {
             Map<String, Object> body = Map.of(
                     "model", model,
                     "temperature", 0.1,
                     "messages", List.of(
                             Map.of("role", "system", "content", FIX_PROMPT),
-                            Map.of("role", "user", "content", snippet)
+                            Map.of("role", "user", "content", code)
                     )
             );
             String response = http.post()
@@ -177,5 +191,13 @@ public class AiReviewService {
             case "LOW" -> Severity.LOW;
             default -> Severity.MEDIUM;
         };
+    }
+
+    /** Thrown by {@link #fix} when the file is too large to safely rewrite whole. */
+    public static class FixTooLargeException extends RuntimeException {
+        public FixTooLargeException(int actualChars, int maxChars) {
+            super("This file is " + actualChars + " characters, which is over the "
+                    + maxChars + "-character limit for AI auto-fix.");
+        }
     }
 }

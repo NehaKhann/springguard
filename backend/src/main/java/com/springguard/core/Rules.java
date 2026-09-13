@@ -99,7 +99,9 @@ public final class Rules {
                     "SQL is built by string concatenation",
                     "Concatenating user input into a query string allows SQL injection, letting an attacker read or modify the database.",
                     "Use parameterized queries / bind parameters (setParameter, ? placeholders) instead of building SQL with \"+\".",
-                    Pattern.compile("(createQuery|createNativeQuery|executeQuery|executeUpdate|prepareStatement)\\s*\\(\\s*\"[^\"]*\"\\s*\\+", FLAGS)),
+                    Pattern.compile("(createQuery|createNativeQuery|executeQuery|executeUpdate|prepareStatement|" +
+                            "queryForObject|queryForList|queryForMap|queryForRowSet|queryForStream|" +
+                            "\\bquery|\\bupdate|batchUpdate)\\s*\\(\\s*\"[^\"]*\"\\s*\\+", FLAGS)),
 
             new SecurityRule("command-injection", Severity.HIGH,
                     "External input may reach a system command",
