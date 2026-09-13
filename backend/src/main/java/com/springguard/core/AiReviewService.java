@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.springguard.model.Finding;
 import com.springguard.model.Severity;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
@@ -22,6 +24,8 @@ import java.util.Map;
  */
 @Service
 public class AiReviewService {
+
+    private static final Logger log = LoggerFactory.getLogger(AiReviewService.class);
 
     private static final String SYSTEM_PROMPT = """
         You are a senior Spring Boot security reviewer. Review the user's code for SECURITY issues
@@ -108,7 +112,9 @@ public class AiReviewService {
 
             return parse(response);
         } catch (Exception e) {
-            // Never break the scan if the AI call fails.
+            // Never break the scan if the AI call fails, but log it — otherwise a bad key,
+            // rate limit, or provider outage is invisible in production.
+            log.warn("AI review call failed: {}", describe(e));
             return List.of();
         }
     }
@@ -168,8 +174,17 @@ public class AiReviewService {
             String content = root.path("choices").path(0).path("message").path("content").asText("");
             return stripFences(content);
         } catch (Exception e) {
+            log.warn("AI fix call failed: {}", describe(e));
             return null;
         }
+    }
+
+    /** Summarise an exception for logging without risking the API key ending up in logs. */
+    private String describe(Exception e) {
+        if (e instanceof org.springframework.web.client.RestClientResponseException rce) {
+            return rce.getStatusCode() + " " + rce.getStatusText() + " - " + rce.getResponseBodyAsString();
+        }
+        return e.getClass().getSimpleName() + ": " + e.getMessage();
     }
 
     /** Remove a leading ```lang line and trailing ``` if the model wrapped the code in a fence. */
