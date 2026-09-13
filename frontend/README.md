@@ -6,11 +6,13 @@ findings, an AI review, downloadable reports, saved history, and AI auto-fix wit
 before/after diff.
 
 - **Live app:** https://springguard-frontend.vercel.app
-- **Backend repo:** https://github.com/NehaKhann/springguard-backend
+- **Backend:** [`../backend`](../backend) in this monorepo
 
 > Heads-up: the live demo's backend runs on a free tier and sleeps when idle, so the first
 > scan can take ~30–60s to wake up. **Running locally is much faster** and is the recommended
 > way to develop or contribute.
+>
+> See the [top-level README](../README.md) for how backend and frontend fit together.
 
 ---
 
@@ -101,14 +103,16 @@ src/
 
 ## Deployment
 
-The hosted app is on **Vercel**. Set `VITE_API_BASE` to your backend URL in the Vercel project
-settings (Environment Variables) so the deployed frontend talks to the deployed backend.
+The hosted app is on **Vercel**, building from the `/frontend` subfolder of this monorepo. Set
+`VITE_API_BASE` to your backend URL in the Vercel project settings (Environment Variables) so
+the deployed frontend talks to the deployed backend.
 
 ## Contributing
 
-Contributions welcome — see the backend repo's `CONTRIBUTING.md` for how the scanning works,
-how to add rules, and how to extend SpringGuard to other Java frameworks. Frontend help
-(accessibility, mobile polish, new report views, severity filtering) is very welcome too.
+Contributions welcome — see [`../backend/CONTRIBUTING.md`](../backend/CONTRIBUTING.md) for how
+the scanning works, how to add rules, and how to extend SpringGuard to other Java frameworks.
+Frontend help (accessibility, mobile polish, new report views, severity filtering) is very
+welcome too.
 
 ## License
 

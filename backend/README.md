@@ -6,11 +6,13 @@ scan a pasted file or a whole GitHub repository, supports user accounts with sav
 history, and can propose AI fixes for flagged files.
 
 - **Live API:** https://springguard-backend.onrender.com
-- **Frontend repo:** https://github.com/NehaKhann/springguard-frontend
+- **Frontend:** [`../frontend`](../frontend) in this monorepo
 
 > Heads-up: the live demo runs on a free tier and sleeps when idle, so the first request after
 > a quiet period can take ~30–60s to wake up. **Running locally is much faster** and is the
 > recommended way to develop or contribute.
+>
+> See the [top-level README](../README.md) for how backend and frontend fit together.
 
 ---
 
@@ -172,9 +174,10 @@ frameworks (Quarkus, JSP, Struts, etc.).
 
 ## Deployment (free tier)
 
-The hosted demo runs on **Render** (backend) with a **Neon** database. A `Dockerfile` is
-included (multi-stage Maven build → JRE 17). Set the same environment variables above in your
-host's dashboard. The frontend is a separate repo deployed on Vercel.
+The hosted demo runs on **Render**, building from the `/backend` subfolder of this monorepo,
+with a **Neon** database. A `Dockerfile` is included (multi-stage Maven build → JRE 17). Set
+the same environment variables above in your host's dashboard. The frontend deploys separately
+on Vercel from the `/frontend` subfolder.
 
 ## License
 
